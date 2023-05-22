@@ -17,9 +17,6 @@
   "devDependencies": {
     "@element-plus/icons-vue": "^2.1.0",
     "@vitejs/plugin-vue": "^4.2.3",
-    "unplugin-auto-import": "^0.16.0",
-    "unplugin-icons": "^0.16.1",
-    "unplugin-vue-components": "^0.24.1",
     "vite": "^4.3.5"
   }
 }
