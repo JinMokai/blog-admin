@@ -7,6 +7,8 @@ import Article from "@/views/article/article.vue"
 import Comment from "@/views/comment/comment.vue"
 import Message from "@/views/message/message.vue"
 import Index from "@/views/home/index.vue"
+import Admin from "@/views/user/admin.vue"
+import Link from "@/views/link/link.vue"
 import { ElMessage } from 'element-plus'
 
 const router = createRouter({
@@ -24,6 +26,7 @@ const router = createRouter({
       path: "/home",
       name: "home",
       component: Home,
+      redirect: "/home/index",
       meta: {
         requiresAuth: true // 需要登录才能访问
       },
@@ -66,6 +69,22 @@ const router = createRouter({
           name: "message",
           meta: {
             title: "留言管理"
+          }
+        },
+        {
+          path: "link",
+          component: Link,
+          name: "link",
+          meta: {
+            title: "友链管理"
+          }
+        },
+        {
+          path: "admin",
+          component: Admin,
+          name: "admin",
+          meta: {
+            title: "个人管理"
           }
         }
       ],
