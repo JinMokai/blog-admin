@@ -44,10 +44,14 @@
             </el-icon>
             <template #title>留言管理</template>
           </el-menu-item>
-          <el-menu-item index="/home/link">
-            <el-icon><Link /></el-icon>
-            <template #title>友链管理</template>
-          </el-menu-item>
+          <el-sub-menu>
+            <template #title>
+              <el-icon><Link /></el-icon>
+              <span>友链管理</span>
+            </template>
+            <el-menu-item index="/home/link"> 友链管理 </el-menu-item>
+            <el-menu-item index="/home/addLink"> 新增友链 </el-menu-item>
+          </el-sub-menu>
           <el-menu-item index="/home/admin">
             <el-icon><Avatar /></el-icon>
             <template #title>个人管理</template>
@@ -59,6 +63,9 @@
           <el-breadcrumb separator="/" style="line-height: 60px">
             <el-breadcrumb-item :to="{ path: '/' }">博客后台</el-breadcrumb-item>
             <el-breadcrumb-item :to="$route.path">{{ $route.meta.title || $route.name }}</el-breadcrumb-item>
+            <!-- 动态渲染二级菜单 -->
+            <el-breadcrumb-item v-if="$route.meta.parentTitle">{{ $route.meta.parentTitle }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta.title">{{ $route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
           <el-button type="primary" class="header_btn" @click="clearUser">注销</el-button>
         </el-header>

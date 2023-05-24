@@ -28,7 +28,7 @@
     </el-form>
     <el-table :data="userList" style="width: 100%" v-loading="loading" height="352px">
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="id" label="序号" width="150" />
+      <el-table-column type="index" label="序号" width="50" />
       <el-table-column prop="username" label="用户名" width="120" align="center" />
       <el-table-column prop="avatar" label="头像" width="120">
         <template #default="scope">
