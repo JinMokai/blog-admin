@@ -138,11 +138,11 @@ export default {
   margin-top: 8px;
 }
 
-.main {
+/* .main {
   padding: 0;
   margin: 24px;
   box-shadow: rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
-}
+} */
 
 .footer {
   height: 1em;
