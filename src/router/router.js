@@ -9,7 +9,9 @@ import Message from "@/views/message/message.vue"
 import Index from "@/views/home/index.vue"
 import Admin from "@/views/user/admin.vue"
 import Link from "@/views/link/link.vue"
-import AddLink from "@/views/link/addLink.vue"
+import Categary from "@/views/categary/categary.vue"
+import addArticle from "@/views/article/addArticle.vue"
+import editArticle from "@/views/article/editArticle.vue"
 import { ElMessage } from 'element-plus'
 
 const router = createRouter({
@@ -57,6 +59,30 @@ const router = createRouter({
           }
         },
         {
+          path: "categary",
+          component: Categary,
+          name: "Categary",
+          meta: {
+            title: "分类管理"
+          }
+        },
+        {
+          path: "addarticle",
+          component: addArticle,
+          name: "addarticle",
+          meta: {
+            title: "新增文章"
+          },
+        },
+        {
+          path: "editArticle/:articleId",
+          component: editArticle,
+          name: "editArticle",
+          meta: {
+            title: "修改文章"
+          }
+        },
+        {
           path: "comment",
           component: Comment,
           name: "comment",
@@ -78,15 +104,6 @@ const router = createRouter({
           name: "link",
           meta: {
             title: "友链管理"
-          }
-        },
-        {
-          path: "addLink",
-          component: AddLink,
-          name: "addlink",
-          meta: {
-            title: "添加友链",
-            parentTitle: "友链管理"
           }
         },
         {

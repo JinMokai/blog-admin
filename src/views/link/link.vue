@@ -365,6 +365,7 @@ export default {
     },
     // 日期改变
     async dateChange(arr) {
+      if (arr == null) return
       this.time = arr.map((item) => {
         return moment(item).format("YYYY-MM-DD HH:mm:ss");
       });
