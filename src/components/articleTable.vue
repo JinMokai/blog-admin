@@ -56,16 +56,26 @@
           </el-icon>
           修改</el-button
         >
-        <el-popconfirm title="确定公开?" @confirm="$emit('public', scope.row)">
+        <el-popconfirm :title="scope.row.status == 1 ? '确定公开?' : '确定隐藏?'" @confirm="$emit('public', scope)">
           <template #reference>
             <el-button :icon="View" link type="success" size="small" @click="">
-              <el-icon><View /></el-icon>
-              公开</el-button
-            >
+              <template #default>
+                <!-- 公开icon -->
+                <span v-if="scope.row.status != 1">
+                  <el-icon><View /></el-icon>
+                  <span>公开</span>
+                </span>
+                <span v-else>
+                  <!-- 隐藏icon -->
+                  <el-icon><Hide /></el-icon>
+                  <span>隐藏</span>
+                </span>
+              </template>
+            </el-button>
           </template>
         </el-popconfirm>
 
-        <el-popconfirm title="确定删除?" @confirm="$emit('delete', scope.row)">
+        <el-popconfirm :title="scope.row.status == 0 ? '确定永久删除?' : '确定删除?'" @confirm="$emit('delete', scope.row)">
           <template #reference>
             <el-button :icon="Delete" link type="danger" size="small" @click="">
               <el-icon>

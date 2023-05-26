@@ -365,7 +365,7 @@ export default {
     },
     // 日期改变
     async dateChange(arr) {
-      if (arr == null) return
+      if (arr == null) return;
       this.time = arr.map((item) => {
         return moment(item).format("YYYY-MM-DD HH:mm:ss");
       });
@@ -411,6 +411,14 @@ export default {
         });
       }
     },
+  },
+  watch: {
+    // 事件侦听器
+    time(newValue, oldValue) {
+      if (newValue == null) {
+        this.time = []
+      }
+    }
   },
   components: {
     Header,

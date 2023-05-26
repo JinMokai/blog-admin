@@ -25,16 +25,30 @@
     </el-card>
     <!-- 对话框 -->
     <el-dialog v-model="dialogVisible" title="发布文章" style="width: 800px">
-      <el-form :model="addArticleParams">
+      <el-form :model="addArticleParams" :rules="dialogRules" ref="diaLogRuleFormRef">
         <el-form-item label="文章标题" prop="title">
           <el-input v-model="addArticleParams.title" />
         </el-form-item>
         <el-form-item label="文章描述" prop="description">
-          <el-input v-model="addArticleParams.description" />
+          <el-input
+            v-model="addArticleParams.description"
+            maxlength="255"
+            placeholder="请输入文章描述"
+            show-word-limit
+            type="textarea"
+          />
         </el-form-item>
-        <el-form-item label="文章分类" prop="categary">
-          <el-select v-model="addArticleParams.categary" placeholder="请选择分类" size="large">
-            <el-option v-for="(item, index) in categaryList" :key="index" :label="item.name" :value="item.id" />
+        <el-form-item label="文章分类" prop="category">
+          <el-select
+            v-model="addArticleParams.category"
+            placeholder="请选择分类"
+            default-first-option
+            filterable
+            allow-create
+            size="large"
+            @change="articleCategary"
+          >
+            <el-option v-for="(item, index) in categaryList" :key="index" :label="item.name" :value="item.name" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -43,8 +57,8 @@
             size="large"
             active-text="置顶"
             inactive-text="不置顶"
-            :active-value="'0'"
-            :inactive-value="'1'"
+            :active-value="0"
+            :inactive-value="1"
             @change="addArticleIsTop"
           />
         </el-form-item>
@@ -55,17 +69,26 @@
             <el-radio :label="0" size="large">草稿箱</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="文章类型" porp="type">
+        <el-form-item label="文章类型" prop="type">
           <el-radio-group v-model="addArticleParams.type" @change="articleType">
             <el-radio :label="0" size="large">原创</el-radio>
             <el-radio :label="1" size="large">转载</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="原文链接" prop="origin_url" v-if="addArticleParams.type == 1">
+          <el-input
+            v-model="addArticleParams.origin_url"
+            maxlength="2000"
+            placeholder="请输入网址"
+            show-word-limit
+            type="textarea"
+          />
+        </el-form-item>
         <div style="display: flex; justify-content: flex-end">
           <el-form-item>
-            <el-button plain size="small" @click="dialogVisible = false">取消</el-button>
+            <el-button plain size="small" @click="cancel">取消</el-button>
             <el-button type="danger" plain size="small" @click="saveDraft">保存草稿</el-button>
-            <el-button type="danger" size="small" @click="postArticle">发布文章</el-button>
+            <el-button type="danger" size="small" @click="postArticle()">发布文章</el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -79,6 +102,7 @@ import "md-editor-v3/lib/style.css";
 export default {
   created() {
     this.getAllCategary();
+    this.getUserId();
   },
   data() {
     return {
@@ -86,20 +110,44 @@ export default {
       addArticleParams: {
         title: "", // 文章标题 不能为空 必填
         description: "", // 文章描述 不能为空 必填
-        content: "# hello world", // 文章内容 不能为空 必填
+        content: "", // 文章内容 不能为空 必填
         category: "", // 分类名字
         is_top: 1, // 置顶文章 0-置顶 1-不置顶 默认:1
         type: 0, // 文章类型：0 原创 1 转载 默认:0
         status: 1, // 发布状态 0-草稿 1-发布 2- 私密 默认:1
+        origin_url: "", // 转载链接
+        user_id: "", // 用户
       },
       // 编辑器文本内容
       dialogVisible: false, // 对话框
       Rules: {
         title: [{ required: true, message: "请输入文章标题", trigger: "blur" }],
       },
+      // 对话框表单验证
+      dialogRules: {
+        title: [{ required: true, message: "请输入文章标题", trigger: "blur" }],
+        description: [
+          { required: true, message: "请输入文章描述", trigger: "blur" },
+          { max: 255, message: "不应该超过255个字符", trigger: "blur" },
+        ],
+        category: [{ required: true, message: "请选择文章分类", trigger: "blur" }],
+        origin_url: [
+          { required: true, message: "请输入网址", trigger: "blur" },
+          { max: 2000, message: "不应该超过2000个字符", trigger: "blur" },
+        ],
+      },
     };
   },
   methods: {
+    //  获取用户id
+    async getUserId() {
+      const { id } = JSON.parse(localStorage.getItem("user"));
+      if (id == null || id == 0 || id == undefined) {
+        this.$message.error("重新登录");
+        this.$router.push("/login");
+      }
+      this.addArticleParams.user_id = id + "";
+    },
     // 获取所有分类
     async getAllCategary() {
       try {
@@ -144,24 +192,68 @@ export default {
       }
       this.dialogVisible = true;
     },
-    //  文章状态改变
-    articleStatus(val) {
-      console.log(val,'articleStatus')
-    },
-    // 文章类型改变
-    articleType(val) {
-      console.log(val, 'articleType')
-    },
     // 保存草稿
-    saveDraft() {
-      console.log("saveDraft")
-      this.dialogVisible = false
+    async saveDraft() {
+      // 校验表单是否合法
+      this.$refs.diaLogRuleFormRef.validate(async (valid) => {
+        if (!valid) {
+          this.$message.warning("请按提示信息填写内容！");
+          return;
+        } else {
+          try {
+            this.addArticleParams.status = 0;
+            await this.$http.post("/article/add", {
+              article: this.addArticleParams,
+            });
+            this.$message.success("添加文章成功");
+            this.dialogVisible = false;
+            this.commonRest(); // 提交之后数据重置 防止污染
+          } catch (err) {
+            const { message } = err.response.data;
+            this.$message.error(message);
+          }
+        }
+      });
     },
     // 发布文章
-    postArticle() {
-      console.log('postArticle')
-      this.dialogVisible = false
-    }
+    async postArticle() {
+      // 校验表单是否合法
+      this.$refs.diaLogRuleFormRef.validate(async (valid) => {
+        if (!valid) {
+          this.$message.warning("请按提示信息填写内容！");
+          return;
+        } else {
+          try {
+            await this.$http.post("/article/add", {
+              article: this.addArticleParams,
+            });
+            this.$message.success("添加文章成功");
+            this.dialogVisible = false;
+            this.commonRest(); // 提交之后数据重置 防止污染
+          } catch (err) {
+            const { message } = err.response.data;
+            this.$message.error(message);
+          }
+        }
+      });
+    },
+    // 取消按钮
+    cancel() {
+      this.dialogVisible = false;
+      this.commonRest();
+    },
+    // 公共重置
+    commonRest() {
+      this.addArticleParams = {
+        title: "", // 文章标题 不能为空 必填
+        description: "", // 文章描述 不能为空 必填
+        content: "", // 文章内容 不能为空 必填
+        category: "", // 分类名字
+        is_top: 1, // 置顶文章 0-置顶 1-不置顶 默认:1
+        type: 0, // 文章类型：0 原创 1 转载 默认:0
+        status: 1, // 发布状态 0-草稿 1-发布 2- 私密 默认:1
+      };
+    },
   },
   components: {
     MdEditor,

@@ -62,9 +62,33 @@
             @public="publicArticle"
           />
         </el-tab-pane>
-        <el-tab-pane label="公开文章" name="2">Config</el-tab-pane>
-        <el-tab-pane label="私密文章" name="3">Role</el-tab-pane>
-        <el-tab-pane label="草稿箱" name="4">Task</el-tab-pane>
+        <el-tab-pane label="公开文章" name="2">
+          <ArticleTable
+            :commList="articlepublicList"
+            @switch="switchStatus"
+            @update="updateArticle"
+            @delete="deleteArticle"
+            @public="publicArticle"
+          />
+        </el-tab-pane>
+        <el-tab-pane label="私密文章" name="3">
+          <ArticleTable
+            :commList="articlePrivate"
+            @switch="switchStatus"
+            @update="updateArticle"
+            @delete="deleteArticle"
+            @public="publicArticle"
+          />
+        </el-tab-pane>
+        <el-tab-pane label="草稿箱" name="4">
+          <ArticleTable
+            :commList="articleDelete"
+            @switch="switchStatus"
+            @update="updateArticle"
+            @delete="deleteArticle"
+            @public="publicArticle"
+          />
+        </el-tab-pane>
       </el-tabs>
       <!-- 分页 -->
       <div class="pagination">
@@ -141,6 +165,7 @@ export default {
     // 获取所有文章
     async getAllArticle() {
       try {
+        this.articleParams.status = ''
         let { result } = await this.$http.post("/article/getArticleList", this.articleParams);
         this.articleList = result.list;
         this.total = result.total;
@@ -152,8 +177,25 @@ export default {
       }
     },
     // 搜索
-    onSearch() {
-      console.log(this.articleParams);
+    async onSearch() {
+      let params = {};
+      this.createdTime.length != 0 &&
+        Object.assign(params, {
+          created: this.createdTime,
+        });
+      this.articleParams && Object.assign(params, this.articleParams);
+      console.log(this.articleParams)
+      try {
+        let { message, result } = await this.$http.post("/article/getArticleList", params);
+
+        const { list, current, size, total } = result;
+        this.articleList = list;
+        this.total = total;
+        this.$message.success("搜索成功");
+      } catch (err) {
+        console.error(err);
+        this.$message.error("搜索出错");
+      }
     },
     // 重置
     onFresh() {
@@ -169,11 +211,11 @@ export default {
     },
     // 分类选择
     categaryChange(value) {
-      console.log(value, "categary");
+      this.articleParams.categary = value
     },
     // 是否置顶
     topChange(value) {
-      console.log(value, "istop");
+      this.articleParams.is_top = value;
     },
     // 日期改变
     dateChange(arr) {
@@ -184,23 +226,123 @@ export default {
       console.log(this.createdTime);
     },
     // 置顶修改
-    switchStatus(topVal) {
-      console.log(topVal, "switchStatus");
+    async switchStatus(topVal) {
+      // id表示用户 is_top 表示置顶参数 置顶文章 0-置顶 1-不置顶 默认:1
+      const { id, is_top } = topVal;
+      try {
+        await this.$http.put(`/article/updateTop/${id}/${is_top}`);
+      } catch (err) {
+        console.log(err);
+        this.$message.error("修改置顶失败!");
+      }
     },
     // 修改
     updateArticle(val) {
       // 将id传给修改组件
       const { id: articleId } = val;
-      this.$router.push(`/home/editArticle/${articleId}`)
+      this.$router.push(`/home/editArticle/${articleId}`);
       console.log(val, "updateArticle");
     },
-    // 公开
-    publicArticle(val) {
-      console.log(val, "publicArticle");
+    // 公开/隐藏
+    async publicArticle(scope) {
+      // 一个是文章id一个是修改后的文章状态码状态码 $index表示数组索引 从0开始(index未使用)
+      const { $index: index, row } = scope;
+      let { id, status } = row;
+      row.status = status === "1" ? "2" : "1";
+      // @bug '' "" 这是前期建表的问题  id为什么类型好像都可以? (sequlize orm框架的保底方案)
+      try {
+        const res = await this.$http.put(`/article/updateStatus/${id}/${row.status}`);
+        this.$message.success(`${status == "1" ? "公开成功" : "隐藏成功"}`);
+      } catch (err) {
+        const { message } = err.response.data;
+        this.$message.error(message);
+      }
     },
-    // 删除
-    deleteArticle(val) {
-      console.log(val, "deleteArticle");
+    // 删除(回收站删除) status 只要不为0就是回收站删除 待会写?
+    async deleteArticle(val) {
+      const { id, status } = val;
+      console.log(val);
+      try {
+        await this.$http.delete(`/article/delete/${id}/${status}`);
+        // 删除表单数据
+        this.articleDelete = this.articleDelete.filter((item) => item.id !== id);
+      } catch (err) {
+        const { message } = err.response.data;
+        this.$message.error(message);
+      }
+    },
+    // 标签切换
+    handleTabClick(value) {
+      const { name } = value.props;
+      try {
+        if (name === '1') {
+          console.log(this.articleParams)
+          this.getAllArticle()
+        }
+        if (name === "2") {
+          console.log(this.articleParams);
+          this.getArticlePublicList();
+        }
+        if (name === "3") {
+          console.log(this.articleParams);
+          this.getArticlePrivateList();
+        }
+        if (name === "4") {
+          console.log(this.articleParams);
+          this.getArticleDelete();
+        }
+      } catch (err) {
+        this.$message.error("错误!");
+      }
+    },
+    // 获取所有公开文章
+    async getArticlePublicList() {
+      let params = this.articleParams;
+      params.status = "1";
+      params.current = 1;
+      this.createdTime.length != 0 &&
+        Object.assign(params, {
+          created: this.createdTime,
+        });
+      let { message, result } = await this.$http.post("/article/getArticleList", params);
+      let { list, ...res } = result;
+      this.articleParams.current = res.current;
+      this.total = res.total;
+      this.articleParams.size = res.size;
+      this.articlepublicList = list;
+    },
+    //  获取所有私密文章
+    async getArticlePrivateList() {
+      let params = this.articleParams;
+      params.status = "2";
+      params.current = 1;
+      this.createdTime.length != 0 &&
+        Object.assign(params, {
+          created: this.createdTime,
+        });
+      let { message, result } = await this.$http.post("/article/getArticleList", params);
+      let { list, ...res } = result;
+      this.articleParams.current = res.current;
+      this.total = res.total;
+      this.articleParams.size = res.size;
+      this.articlePrivate = list;
+    },
+    //  获取所有草稿文章
+    async getArticleDelete() {
+      let params = this.articleParams;
+      params.status = "0";
+      params.current = 1;
+
+      this.createdTime.length != 0 &&
+        Object.assign(params, {
+          created: this.createdTime,
+        });
+      let { message, result } = await this.$http.post("/article/getArticleList", params);
+      let { list, ...res } = result;
+      this.articleParams.current = res.current;
+      this.total = res.total;
+      this.articleParams.size = res.size;
+      this.articleDelete = list;
     },
     // 新增文章
     addArticle() {
@@ -209,16 +351,46 @@ export default {
     // 分页操作
     handleSizeChange(val) {
       console.log(val, "handleSizeChange");
+      this.articleParams.size = val;
+      this.commonPage();
     },
     // 分页操作 处理当前页
     handleCurrentChange(val) {
       console.log(val, "handleCurrentChange");
+      this.articleParams.current = val;
+      this.commonPage();
+    },
+    // 公共搜索
+    async commonPage() {
+      try {
+        let params = {};
+        this.createdTime != 0 &&
+          Object.assign(params, {
+            created: this.createdTime,
+          });
+        this.articleParams && Object.assign(params, this.articleParams);
+        let { message, result } = await this.$http.post("/article/getArticleList", params);
+        const { list, current, size, total } = result;
+        this.articleList = list;
+        this.total = total;
+      } catch (err) {
+        console.log(err);
+        this.$message.error("查询失败!");
+      }
     },
   },
   computed: {},
   components: {
     ArticleTable,
   },
+  watch: {
+    // 事件侦听器
+    createdTime(newValue, oldValue) {
+      if (newValue == null) {
+        this.createdTime = []
+      }
+    }
+  }
 };
 </script>
 
