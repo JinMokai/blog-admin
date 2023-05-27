@@ -1,68 +1,80 @@
 <template>
   <div>
-    <Header message="友链管理" />
-    <el-form :inline="true" :model="linkInfo" class="link_box">
-      <el-form-item label="网站名称" style="font-weight: 600">
-        <el-input v-model="linkInfo.site_name" aria-placeholder="请输入网址名称" placeholder="请输入网址名称" />
+    <el-card class="box-card">
+      <template #header>
+        <div class="card-header">
+          <span>友链管理</span>
+        </div>
+      </template>
+      <el-form :inline="true" :model="linkInfo" class="link_box">
+        <el-form-item label="网站名称" style="font-weight: 600">
+          <el-input v-model="linkInfo.site_name" aria-placeholder="请输入网址名称" placeholder="请输入网址名称" />
+        </el-form-item>
+        <el-form-item label="申请时间">
+          <el-date-picker
+            v-model="time"
+            type="daterange"
+            range-separator="到"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            @change="dateChange"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="search">
+            <el-icon><Search /></el-icon>
+            <span>搜索</span>
+          </el-button>
+          <el-button @click="onFresh">
+            <el-icon><Refresh /></el-icon>
+            <span>重置</span>
+          </el-button>
+        </el-form-item>
+      </el-form>
+      <el-form-item style="margin-bottom: 1rem; padding-left: 24px">
+        <el-button type="danger" size="small" @click="deleteList">
+          <el-icon><Delete /></el-icon>
+          批量删除
+        </el-button>
+        <el-button type="primary" size="small" v-if="activeTabName == '2'" @click="checkLink">
+          <el-icon><Finished /></el-icon>
+          批量审核
+        </el-button>
       </el-form-item>
-      <el-form-item label="申请时间">
-        <el-date-picker
-          v-model="time"
-          type="daterange"
-          range-separator="到"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-          @change="dateChange"
+      <!-- tab -->
+      <el-tabs v-model="activeTabName" class="demo-tabs" @tab-click="handleTabClick" style="padding-left: 24px">
+        <el-tab-pane label="所有友链" name="1">
+          <keep-alive>
+            <TabTable :commList="linkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
+          </keep-alive>
+        </el-tab-pane>
+        <el-tab-pane label="待审核" name="2">
+          <keep-alive>
+            <TabTable :commList="examineLinkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
+          </keep-alive>
+        </el-tab-pane>
+        <el-tab-pane label="审核通过" name="3">
+          <keep-alive>
+            <TabTable :commList="successLinkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
+          </keep-alive>
+        </el-tab-pane>
+      </el-tabs>
+      <!-- 分页 -->
+      <div class="pagination">
+        <el-pagination
+          v-model:current-page="linkInfo.current"
+          :page-sizes="[5, 10, 15, 20]"
+          :page-size="linkInfo.size"
+          :small="pagination.small"
+          :disabled="disabled"
+          :background="pagination.background"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
         />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="search">
-          <el-icon><Search /></el-icon>
-          <span>搜索</span>
-        </el-button>
-        <el-button @click="onFresh">
-          <el-icon><Refresh /></el-icon>
-          <span>重置</span>
-        </el-button>
-      </el-form-item>
-    </el-form>
-    <el-form-item style="margin-bottom: 1rem; padding-left: 24px">
-      <el-button type="danger" size="small" @click="deleteList">
-        <el-icon><Delete /></el-icon>
-        批量删除
-      </el-button>
-      <el-button type="primary" size="small" v-if="activeTabName == '2'" @click="checkLink">
-        <el-icon><Finished /></el-icon>
-        批量审核
-      </el-button>
-    </el-form-item>
-    <!-- tab -->
-    <el-tabs v-model="activeTabName" class="demo-tabs" @tab-click="handleTabClick" style="padding-left: 24px">
-      <el-tab-pane label="所有友链" name="1">
-        <TabTable :commList="linkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
-      </el-tab-pane>
-      <el-tab-pane label="待审核" name="2">
-        <TabTable :commList="examineLinkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
-      </el-tab-pane>
-      <el-tab-pane label="审核通过" name="3">
-        <TabTable :commList="successLinkList" @handleRowClick="handleRowClick" @getMultipData="getDeleteList" />
-      </el-tab-pane>
-    </el-tabs>
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="linkInfo.current"
-        :page-sizes="[5, 10, 15, 20]"
-        :page-size="linkInfo.size"
-        :small="pagination.small"
-        :disabled="disabled"
-        :background="pagination.background"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+      </div>
+    </el-card>
     <!-- 修改对话框 -->
     <el-dialog v-model="dialogVisible" title="修改友链" width="50%" draggable @close="modalCloseHardler">
       <el-form width="50%" ref="ruleFormRef" :model="formData" :rules="rules" label-width="80px" class="ruleForm" status-icon>
@@ -137,7 +149,7 @@ export default {
       total: 0, // 总数
       activeTabName: "1", // tab标签默认关联
       dialogVisible: false,
-      formData: {},
+      formData: {}, // 修改时候的临时数据
       dialogDelete: false, // 删除对话框
       dialogCheck: false, // 审核对话框
       idList: [], // 删除id
@@ -262,21 +274,37 @@ export default {
     },
     // 弹窗数据修改
     async dialogDataHardler() {
-      try {
-        let { message } = await this.$http.post("/links/addOrUpdateLinks", this.formData);
-        this.getLinkList();
-        this.$message({
-          type: "success",
-          message,
-        });
-      } catch (err) {
-        const { message } = err.response.data;
-        this.$message({
-          type: "error",
-          message,
-        });
-      }
-      this.dialogVisible = false;
+      this.$refs.ruleFormRef.validate(async (valid) => {
+        if (!valid) {
+          this.$message.warning("请按提示信息填写内容！");
+          return;
+        } else {
+          try {
+            let { message } = await this.$http.post("/links/addOrUpdateLinks", this.formData);
+            // @bug 每次修改都放回 性能消耗过大 (fix:服务器请求的浪费)
+            // this.getLinkList();
+            const { id } = this.formData;
+            this.linkList = this.linkList.map((item) => (item.id === id ? Object.assign(item, this.formData) : item));
+            this.examineLinkList = this.examineLinkList.map((item) =>
+              item.id === id ? Object.assign(item, this.formData) : item
+            );
+            this.successLinkList = this.successLinkList.map((item) =>
+              item.id === id ? Object.assign(item, this.formData) : item
+            );
+            this.$message({
+              type: "success",
+              message,
+            });
+          } catch (err) {
+            const { message } = err.response.data;
+            this.$message({
+              type: "error",
+              message,
+            });
+          }
+          this.dialogVisible = false;
+        }
+      });
     },
     // (获取子组件传递的参数) 返回数据选中数据数组格式
     getDeleteList(multips) {
@@ -313,19 +341,20 @@ export default {
     // 真实删除友链
     async deleteLink() {
       try {
-        let list = this.idList;
-        this.dialogDelete = false;
+        let params = this.idList.map((item) => item);
         let { message, result: count } = await this.$http.put("/links/delete", {
-          idList: list,
+          idList: params,
         });
-        this.$message({
-          type: "success",
-          message: `删除成功！删除了${count}个数据!`,
-        });
-        // @bug(性能消耗过大)
-        this.getExamineLinkList();
-        this.getLinkList();
-        this.getSuccessLinkList();
+        // @bug(性能消耗过大) @fix 服务端改客户端 避免过度请求
+        // this.getExamineLinkList();
+        // this.getLinkList();
+        // this.getSuccessLinkList();
+        this.linkList = this.linkList.filter((item) => !params.includes(item.id));
+        this.examineLinkList = this.examineLinkList.filter((item) => !params.includes(item.id));
+        this.successLinkList = this.successLinkList.filter((item) => !params.includes(item.id));
+        this.total = this.total - count;
+        this.dialogDelete = false;
+        this.$message.success(`删除成功！删除了${count}个数据!`);
       } catch (err) {
         this.$message({
           type: "error",
@@ -336,21 +365,18 @@ export default {
     // 真实审核友链
     async goCheckLink() {
       try {
-        let list = this.idList;
-        this.dialogCheck = false;
+        let params = this.idList.map((item) => item);
         let { message, result: count } = await this.$http.put("/links/approve", {
-          idList: list,
+          idList: params,
         });
-        this.$message({
-          type: "success",
-          message: `审核成功！通过了${count}个数据!`,
-        });
-        this.getExamineLinkList();
+        // @bug
+        // this.getExamineLinkList();
+        this.examineLinkList = this.examineLinkList.filter((item) => !params.includes(item.id));
+        this.total = this.total - count;
+        this.$message.success(`审核成功！通过了${count}个数据`);
+        this.dialogCheck = false;
       } catch (err) {
-        this.$message({
-          type: "error",
-          message: "审核通过失败",
-        });
+        this.$message.error("审核通过失败");
       }
     },
     // 当前页改变
@@ -365,19 +391,17 @@ export default {
     },
     // 日期改变
     async dateChange(arr) {
-      if (arr == null) return;
+      if (arr == null)  return;
       this.time = arr.map((item) => {
         return moment(item).format("YYYY-MM-DD HH:mm:ss");
       });
+      console.log(this.time)
     },
     // 搜索
     async search() {
       try {
         this.commonPage();
-        this.$message({
-          type: "success",
-          message: "搜索成功",
-        });
+        this.$message.success("搜索成功!");
       } catch (error) {}
     },
     // 重置
@@ -394,6 +418,13 @@ export default {
     async commonPage() {
       try {
         let params = {};
+        // 如果标签页切换的是不同的 所对应的状态也不同
+        if (this.activeTabName === "1") {
+        } else if (this.activeTabName === "2") {
+          params.status = "0";
+        } else if (this.activeTabName === "3") {
+          params.status = "1";
+        }
         this.time.length != 0 &&
           Object.assign(params, {
             time: this.time,
@@ -402,13 +433,19 @@ export default {
         this.linkInfo && Object.assign(params, this.linkInfo);
         let { message, result } = await this.$http.post("/links/getLinksList", params);
         const { list, current, size, total } = result;
-        this.linkList = list;
         this.total = total;
+        this.size = size;
+        this.current = current;
+          // 将不同状态分页数据给对应的数组中去
+        if (this.activeTabName === "1") {
+          this.linkList = list;
+        } else if (this.activeTabName === "2") {
+          this.examineLinkList = list;
+        } else if (this.activeTabName === "3") {
+          this.successLinkList = list;
+        }
       } catch (err) {
-        this.$message({
-          type: "error",
-          message: "查询错误！",
-        });
+        this.$message.error("查询错误！")
       }
     },
   },
@@ -416,9 +453,12 @@ export default {
     // 事件侦听器
     time(newValue, oldValue) {
       if (newValue == null) {
-        this.time = []
+        this.time = [];
       }
-    }
+    },
+    activeTabName() {
+      this.commonPage();
+    },
   },
   components: {
     Header,

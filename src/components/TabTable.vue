@@ -17,6 +17,7 @@
         </div>
       </template>
     </el-table-column>
+    <el-table-column prop="site_name" label="网站名称" width="120" show-overflow-tooltip> </el-table-column>
     <el-table-column prop="site_desc" label="网站描述" width="120" show-overflow-tooltip> </el-table-column>
     <el-table-column prop="url" label="网站地址" width="220" align="center" show-overflow-tooltip> </el-table-column>
     <el-table-column prop="status" label="状态" width="100" align="center">
