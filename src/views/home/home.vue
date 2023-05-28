@@ -35,12 +35,12 @@
             <el-menu-item index="/home/addarticle"> 新增文章 </el-menu-item>
             <el-menu-item index="/home/categary"> 分类管理 </el-menu-item>
           </el-sub-menu>
-          <el-menu-item index="/home/comment">
+          <!-- <el-menu-item index="/home/comment">
             <el-icon>
               <ChatDotRound />
             </el-icon>
             <template #title>评论管理</template>
-          </el-menu-item>
+          </el-menu-item> -->
           <el-menu-item index="/home/message">
             <el-icon>
               <ChatRound />

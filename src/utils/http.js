@@ -48,6 +48,14 @@ instance.interceptors.response.use(
                 }
             })
         }
+        if (code == 66) {
+            console.error("普通用户仅查看")
+            ElMessage({
+                message: '普通用户仅查看',
+                type: 'error',
+                duration: 1500,
+            })
+        }
         // 对响应错误做点什么，例如：弹出错误提示
         return Promise.reject(error)
     }

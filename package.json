@@ -1,11 +1,17 @@
 {
   "name": "admin",
   "version": "0.0.0",
+  "description": "基于vue3+vite4.5+vue-router的后台管理页面",
   "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "author": {
+    "name": "Jinmark-kai",
+    "email": "chkaijack@outlook.com",
+    "url": "https://chkaiblog.eu.org"
   },
   "dependencies": {
     "axios": "^1.4.0",

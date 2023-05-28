@@ -75,9 +75,9 @@
           </div>
         </div>
       </div>
-      <div class="box" style="width: 500px">
-        <div class="left" ref="leftRef"></div>
-        <div class="right" ref="rightRef"></div>
+      <div class="box" style="width: 100%; height: 100%;display: flex;gap: 1rem;">
+        <div class="left" ref="leftRef" style="height: 500px;flex: 1;"></div>
+        <div class="right" ref="rightRef" style="height: 500px;flex: 1;"></div>
       </div>
     </el-card>
   </div>
@@ -92,8 +92,6 @@ echarts.use([GridComponent, BarChart, CanvasRenderer]);
 export default {
   created() {
     this.getStaticList();
-    this.getListYear();
-    this.getMonthCount();
   },
   data() {
     return {
@@ -103,7 +101,6 @@ export default {
       // 网站每月访问数量
       monthCount: [],
       loading: true,
-      // 文章年份配置
     };
   },
   methods: {
@@ -132,45 +129,75 @@ export default {
       }
     },
     // 获取网站每月访问数量
-    getMonthCount() {
-      const { result } = this.$http.get("/static/month");
-      this.monthCount = result;
+    async getMonthCount() {
+      try {
+        const { result } = await this.$http.get("/static/month");
+        this.monthCount = result;
+      } catch (err) {
+        this.$message.error("获取完整访问量出错");
+      }
     },
-    // 初始化Echarts
+    // 初始化Echarts left
     initEcharts() {
       const OptionLeft = {
         xAxis: {
-          data: this.listYear.map((item) => item.year),
+          data: this.listYear.map((item) => String(item.year)).reverse(),
+          name: "年份",
         },
         yAxis: {
           type: "value",
+          name: "文章数量",
         },
         series: [
           {
-            data: this.listYear.map((item) => item.article_count),
+            data: this.listYear.map((item) => String(item.article_count)).reverse(),
             type: "bar",
           },
         ],
       };
-      const myChart = echarts.init(document.querySelector(".left"));
+      const myChart = echarts.init(this.$refs.leftRef);
       myChart.setOption(OptionLeft);
+    },
+    // 初始化Echarts right
+    initEchartsRight() {
+      const OptionRight = {
+        xAxis: {
+          data: this.monthCount.map((item) => String(item.month)).reverse(),
+          name: "月份",
+        },
+        yAxis: {
+          type: "value",
+          name: "访问量",
+        },
+        series: [
+          {
+            data: this.monthCount.map((item) => String(item.view_count)).reverse(),
+            type: "bar",
+          },
+        ],
+      };
+      const myChart = echarts.init(this.$refs.rightRef);
+      myChart.setOption(OptionRight);
     },
   },
   mounted() {
     this.loading = false;
-    this.initEcharts();
+    // fix 异步数据加载完再加载数据
+    Promise.all([this.getMonthCount(), this.getListYear()])
+      .then(() => {
+        this.initEcharts();
+        this.initEchartsRight();
+      })
+      .catch((error) => {
+        this.$message.error("获取静态数据或文章数量出错");
+        console.error("获取静态数据或文章数量出错", error);
+      });
   },
 };
 </script>
 
 <style scoped>
-.box {
-  display: flex;
-}
-.left {
-  width: 50%;
-  height: 100%;
-}
+
 .el_row {
   box-sizing: border-box;
   display: flex;
