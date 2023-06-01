@@ -56,7 +56,7 @@
           </el-icon>
           修改</el-button
         >
-        <el-popconfirm :title="scope.row.status == 1 ? '确定公开?' : '确定隐藏?'" @confirm="$emit('public', scope)">
+        <el-popconfirm :title="scope.row.status == 1 ? '确定隐藏?' : '确定公开?'" @confirm="$emit('public', scope)">
           <template #reference>
             <el-button :icon="View" link type="success" size="small" @click="">
               <template #default>

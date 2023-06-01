@@ -252,7 +252,7 @@ export default {
       // @bug '' "" 这是前期建表的问题  id为什么类型好像都可以? (sequlize orm框架的保底方案)
       try {
         const res = await this.$http.put(`/article/updateStatus/${id}/${row.status}`);
-        this.$message.success(`${status == "1" ? "公开成功" : "隐藏成功"}`);
+        this.$message.success(`${status == "1" ? "隐藏成功" : "公开成功"}`);
       } catch (err) {
         const { message } = err.response.data;
         this.$message.error(message);
@@ -266,6 +266,8 @@ export default {
         await this.$http.delete(`/article/delete/${id}/${status}`);
         // 删除表单数据
         this.articleDelete = this.articleDelete.filter((item) => item.id !== id);
+        // 删除所有文章列表数据
+        this.articleList = this.articleList.filter((item) => item.id != id)
       } catch (err) {
         const { message } = err.response.data;
         this.$message.error(message);
