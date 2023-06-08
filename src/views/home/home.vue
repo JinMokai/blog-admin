@@ -73,7 +73,7 @@
         <el-main class="main">
           <router-view></router-view>
         </el-main>
-        <el-footer class="footer">© 2023 Copyright jinkai. All rights reserved. Made in China use Astro ❤️</el-footer>
+        <el-footer class="footer">© 2023 Copyright jinkai. Made in China use Vue3 ❤️</el-footer>
       </el-container>
     </el-container>
   </div>
