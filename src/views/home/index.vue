@@ -77,7 +77,7 @@
       </div>
       <div class="box" style="width: 100%; height: 100%;display: flex;gap: 1rem;">
         <div class="left" ref="leftRef" style="height: 500px;flex: 1;"></div>
-        <div class="right" ref="rightRef" style="height: 500px;flex: 1;"></div>
+        <!-- <div class="right" ref="rightRef" style="height: 500px;flex: 1;"></div> -->
       </div>
     </el-card>
   </div>
@@ -133,6 +133,7 @@ export default {
       try {
         const { result } = await this.$http.get("/static/month");
         this.monthCount = result;
+        console.log(this.monthCount, 'ch')
       } catch (err) {
         this.$message.error("获取完整访问量出错");
       }
@@ -159,34 +160,34 @@ export default {
       myChart.setOption(OptionLeft);
     },
     // 初始化Echarts right
-    initEchartsRight() {
-      const OptionRight = {
-        xAxis: {
-          data: this.monthCount.map((item) => String(item.month)).reverse(),
-          name: "月份",
-        },
-        yAxis: {
-          type: "value",
-          name: "访问量",
-        },
-        series: [
-          {
-            data: this.monthCount.map((item) => String(item.view_count)).reverse(),
-            type: "bar",
-          },
-        ],
-      };
-      const myChart = echarts.init(this.$refs.rightRef);
-      myChart.setOption(OptionRight);
-    },
+    // initEchartsRight() {
+    //   const OptionRight = {
+    //     xAxis: {
+    //       data: this.monthCount.map((item) => String(item.month)).reverse(),
+    //       name: "月份",
+    //     },
+    //     yAxis: {
+    //       type: "value",
+    //       name: "访问量",
+    //     },
+    //     series: [
+    //       {
+    //         data: this.monthCount.map((item) => String(item.view_count)).reverse(),
+    //         type: "bar",
+    //       },
+    //     ],
+    //   };
+    //   const myChart = echarts.init(this.$refs.rightRef);
+    //   myChart.setOption(OptionRight);
+    // },
   },
   mounted() {
     this.loading = false;
     // fix 异步数据加载完再加载数据
-    Promise.all([this.getMonthCount(), this.getListYear()])
+    Promise.all([this.getListYear()])
       .then(() => {
         this.initEcharts();
-        this.initEchartsRight();
+        // this.initEchartsRight();
       })
       .catch((error) => {
         this.$message.error("获取静态数据或文章数量出错");

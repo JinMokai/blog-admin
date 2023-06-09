@@ -147,6 +147,7 @@ export default {
         small: true,
         background: true,
       },
+      tabInfo: "1", // 标签切换判断
     };
   },
   methods: {
@@ -165,7 +166,7 @@ export default {
     // 获取所有文章
     async getAllArticle() {
       try {
-        this.articleParams.status = ''
+        this.articleParams.status = "";
         let { result } = await this.$http.post("/article/getArticleList", this.articleParams);
         this.articleList = result.list;
         this.total = result.total;
@@ -184,7 +185,7 @@ export default {
           created: this.createdTime,
         });
       this.articleParams && Object.assign(params, this.articleParams);
-      console.log(this.articleParams)
+      console.log(this.articleParams);
       try {
         let { message, result } = await this.$http.post("/article/getArticleList", params);
 
@@ -211,7 +212,7 @@ export default {
     },
     // 分类选择
     categaryChange(value) {
-      this.articleParams.categary = value
+      this.articleParams.categary = value;
     },
     // 是否置顶
     topChange(value) {
@@ -267,7 +268,7 @@ export default {
         // 删除表单数据
         this.articleDelete = this.articleDelete.filter((item) => item.id !== id);
         // 删除所有文章列表数据
-        this.articleList = this.articleList.filter((item) => item.id != id)
+        this.articleList = this.articleList.filter((item) => item.id != id);
       } catch (err) {
         const { message } = err.response.data;
         this.$message.error(message);
@@ -276,23 +277,11 @@ export default {
     // 标签切换
     handleTabClick(value) {
       const { name } = value.props;
+      this.tabInfo = name;
+      // 每次标签切换current都将为1
+      this.articleParams.current = 1;
       try {
-        if (name === '1') {
-          console.log(this.articleParams)
-          this.getAllArticle()
-        }
-        if (name === "2") {
-          console.log(this.articleParams);
-          this.getArticlePublicList();
-        }
-        if (name === "3") {
-          console.log(this.articleParams);
-          this.getArticlePrivateList();
-        }
-        if (name === "4") {
-          console.log(this.articleParams);
-          this.getArticleDelete();
-        }
+        this.switchcommon(name)
       } catch (err) {
         this.$message.error("错误!");
       }
@@ -301,7 +290,6 @@ export default {
     async getArticlePublicList() {
       let params = this.articleParams;
       params.status = "1";
-      params.current = 1;
       this.createdTime.length != 0 &&
         Object.assign(params, {
           created: this.createdTime,
@@ -317,7 +305,6 @@ export default {
     async getArticlePrivateList() {
       let params = this.articleParams;
       params.status = "2";
-      params.current = 1;
       this.createdTime.length != 0 &&
         Object.assign(params, {
           created: this.createdTime,
@@ -333,7 +320,6 @@ export default {
     async getArticleDelete() {
       let params = this.articleParams;
       params.status = "0";
-      params.current = 1;
 
       this.createdTime.length != 0 &&
         Object.assign(params, {
@@ -354,30 +340,39 @@ export default {
     handleSizeChange(val) {
       console.log(val, "handleSizeChange");
       this.articleParams.size = val;
+      console.log(this.articleParams);
       this.commonPage();
     },
     // 分页操作 处理当前页
     handleCurrentChange(val) {
       console.log(val, "handleCurrentChange");
       this.articleParams.current = val;
+      console.log(this.articleParams);
       this.commonPage();
     },
     // 公共搜索
     async commonPage() {
       try {
-        let params = {};
-        this.createdTime != 0 &&
-          Object.assign(params, {
-            created: this.createdTime,
-          });
-        this.articleParams && Object.assign(params, this.articleParams);
-        let { message, result } = await this.$http.post("/article/getArticleList", params);
-        const { list, current, size, total } = result;
-        this.articleList = list;
-        this.total = total;
+        this.commonVerify();
       } catch (err) {
         console.log(err);
         this.$message.error("查询失败!");
+      }
+    },
+    // 公共验证tab参数
+    commonVerify() {
+      let tab = this.tabInfo;
+      this.switchcommon(tab)
+    },
+    switchcommon(switcTab) {
+      if (switcTab < 1 || switcTab > 4) {
+        throw "参数不合法"
+      }
+      switch(switcTab) {
+        case "1": this.getAllArticle(); break;
+        case "2": this.getArticlePublicList(); break;
+        case "3": this.getArticlePrivateList(); break;
+        case "4": this.getArticleDelete(); break;
       }
     },
   },
@@ -389,10 +384,10 @@ export default {
     // 事件侦听器
     createdTime(newValue, oldValue) {
       if (newValue == null) {
-        this.createdTime = []
+        this.createdTime = [];
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
