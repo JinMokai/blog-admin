@@ -24,9 +24,14 @@
         <el-table-column type="index" label="序号" width="50" />
         <el-table-column prop="nickname" label="昵称" width="100" show-overflow-tooltip />
         <el-table-column prop="email" label="邮箱" width="100" show-overflow-tooltip />
-        <el-table-column prop="website" label="网站" width="220" align="center" show-overflow-tooltip>
-          <template #default="{ row }">
+        <el-table-column prop="website" label="网站" width="100" align="center" show-overflow-tooltip>
+          <template #default="{row}">
             {{ row.website == null ? "暂无网址" : row.website }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="content" label="留言内容" width="220" align="center" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.content == null ? "暂无内容" : row.content }}
           </template>
         </el-table-column>
         <el-table-column prop="status" label="审核状态" width="200" align="center">

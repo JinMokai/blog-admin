@@ -267,8 +267,12 @@ export default {
         await this.$http.delete(`/article/delete/${id}/${status}`);
         // 删除表单数据
         this.articleDelete = this.articleDelete.filter((item) => item.id !== id);
-        // 删除所有文章列表数据
+        // 删除所有文章列表数据 公开文章数据 私密文章数据
         this.articleList = this.articleList.filter((item) => item.id != id);
+        this.articlepublicList = this.articlepublicList.filter((item) => item.id != id)
+        this.articlePrivate = this.articlePrivate.filter((item) => item.id != id)
+        this.total = this.total - 1
+        this.$message.success("删除成功")
       } catch (err) {
         const { message } = err.response.data;
         this.$message.error(message);
